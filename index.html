@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111317">
+  <title>Urge Breaker · Control Tool</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none; /* smoother on mobile */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #0b0d10;
+      font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', sans-serif;
+      color: #eef2ff;
+      padding: 20px 16px 32px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* main container */
+    .app-container {
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+      background: #111317;
+      border-radius: 2rem;
+      padding: 1.6rem 1.2rem 2rem;
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
+    }
+
+    /* screens */
+    .screen {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* typography */
+    h2 {
+      font-size: 1.65rem;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      margin-bottom: 0.25rem;
+    }
+
+    .streak-panel {
+      background: #1a1e26;
+      border-radius: 2rem;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: #1f232c;
+      border-radius: 1.5rem;
+      padding: 0.6rem 1rem;
+      text-align: center;
+      flex: 1;
+      min-width: 90px;
+    }
+
+    .stat-number {
+      font-size: 1.8rem;
+      font-weight: 800;
+      line-height: 1;
+      color: #b9e6ff;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8f9bb3;
+    }
+
+    /* big button */
+    .urge-btn {
+      background: #e34d4c;
+      width: 100%;
+      border: none;
+      padding: 1.4rem 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+      border-radius: 3rem;
+      color: white;
+      box-shadow: 0 8px 0 #8b2c2b;
+      transition: all 0.08s linear;
+      cursor: pointer;
+      margin: 20px 0 14px;
+      text-align: center;
+    }
+
+    .urge-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 4px 0 #8b2c2b;
+    }
+
+    .secondary-btn {
+      background: #2a2f3c;
+      border: none;
+      padding: 0.8rem 1rem;
+      border-radius: 2rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #cfdeff;
+      transition: 0.1s;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .emergency-btn {
+      background: #b13e3e;
+      border: none;
+      padding: 0.8rem;
+      border-radius: 2rem;
+      font-weight: bold;
+      color: white;
+      margin-top: 12px;
+      width: 100%;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 12px;
+      margin: 10px 0;
+    }
+
+    /* timer & urge flow */
+    .timer-display {
+      font-size: 3rem;
+      font-weight: 800;
+      font-family: monospace;
+      text-align: center;
+      background: #00000030;
+      padding: 0.5rem;
+      border-radius: 3rem;
+      margin: 10px 0;
+      letter-spacing: 4px;
+    }
+
+    .stage-card {
+      background: #1e2532;
+      border-radius: 2rem;
+      padding: 1.5rem 1rem;
+      margin: 20px 0;
+      text-align: center;
+      transition: 0.2s;
+    }
+
+    .breath-circle {
+      width: 130px;
+      height: 130px;
+      background: #2f80ed;
+      border-radius: 50%;
+      margin: 1rem auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.4rem;
+      transition: transform 4s ease-in-out, background 0.3s;
+      box-shadow: 0 0 20px #2f80ed70;
+    }
+
+    .breath-in {
+      transform: scale(1.4);
+      background: #4b9eff;
+    }
+
+    .breath-out {
+      transform: scale(0.9);
+      background: #1c5ab3;
+    }
+
+    .action-text {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 16px 0;
+    }
+
+    .motivation-ticker {
+      background: #1b1f29;
+      border-radius: 2rem;
+      padding: 0.6rem;
+      text-align: center;
+      font-size: 0.85rem;
+      margin: 20px 0 10px;
+      color: #b9c7e6;
+    }
+
+    .tips-panel {
+      background: #0f1118;
+      border-radius: 1.5rem;
+      padding: 0.9rem;
+      margin-top: 20px;
+      font-size: 0.8rem;
+    }
+
+    .warning-toast {
+      background: #ffb347;
+      color: #1f1b13;
+      font-weight: bold;
+      padding: 8px;
+      border-radius: 40px;
+      text-align: center;
+      margin-top: 8px;
+      animation: fade 2s ease;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .overlay-red {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #c72a2fe6;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+      transition: 0.2s;
+    }
+
+    .emergency-box {
+      background: #000000aa;
+      padding: 2rem;
+      border-radius: 3rem;
+      text-align: center;
+      width: 80%;
+    }
+
+    @keyframes fade {
+      0% { opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000000cc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1100;
+    }
+
+    .modal-card {
+      background: #1f232e;
+      border-radius: 2rem;
+      padding: 1.8rem;
+      width: 85%;
+      max-width: 300px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container" id="appRoot">
+  <!-- MAIN SCREEN -->
+  <div id="mainScreen" class="screen">
+    <div class="streak-panel">
+      <div class="stat-card"><div class="stat-number" id="currentStreakDisplay">0</div><div class="stat-label">🔥 streak (days)</div></div>
+      <div class="stat-card"><div class="stat-number" id="todaySuccessDisplay">0</div><div class="stat-label">✅ today's wins</div></div>
+    </div>
+
+    <button id="urgeBtn" class="urge-btn">⚡ I have an urge</button>
+    <button id="viewProgressBtn" class="secondary-btn">📊 View Progress</button>
+    <button id="emergencyBtn" class="emergency-btn">⚠️ STRONG URGE (emergency)</button>
+
+    <div class="motivation-ticker" id="motivationMsg">✨ Control beats impulse</div>
+
+    <div class="tips-panel">
+      🌿 Environment Control Tips<br>
+      • Keep phone away at night<br>
+      • Avoid trigger environments<br>
+      • Stay busy & move<br>
+      • Breathe before reacting
+    </div>
+  </div>
+
+  <!-- URGE FLOW SCREEN (timer & stages) -->
+  <div id="urgeFlowScreen" class="screen hidden">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <h3>🧠 urge breaker</h3>
+      <button id="exitFlowBtn" style="background:none; border:1px solid #6c7a9e; border-radius: 30px; padding: 6px 14px;">✖ Cancel</button>
+    </div>
+    <div class="timer-display" id="countdownTimer">4:00</div>
+    <div class="stage-card" id="stageContent">
+      <!-- dynamic stage content -->
+      <div id="stageMessage">Wait. You are in control.</div>
+      <div id="stageSpecific"></div>
+    </div>
+    <div id="flowMotivation" class="motivation-ticker" style="margin-top: 10px;">Delay = strength</div>
+    <button id="fakeQuitWarningBtn" style="display: none;">dummy</button>
+  </div>
+
+  <!-- PROGRESS DASHBOARD MODAL -->
+  <div id="progressModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>📈 Discipline Dashboard</h3>
+      <div style="margin: 16px 0; text-align: left;">
+        <p>🔥 Current streak: <strong id="modalCurrentStreak">0</strong> days</p>
+        <p>🏆 Best streak: <strong id="modalBestStreak">0</strong> days</p>
+        <p>🛡️ Total urges handled: <strong id="modalTotalHandled">0</strong></p>
+        <p>📊 Success rate: <strong id="modalSuccessRate">0</strong>%</p>
+      </div>
+      <button id="closeProgressBtn" class="secondary-btn" style="margin-top: 8px;">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ------------------------- STORAGE & GLOBALS -------------------------
+  let activeUrgeSession = false;
+  let timerInterval = null;
+  let elapsedSeconds = 0;          // seconds since start of urge session (0..600)
+  let currentStage = 1;            // 1,2,3
+  let stage2Activity = "";          // random activity
+  let stage3Redirect = "";          // random focus task
+  let totalSessionDuration = 240;   // 10 min = 600 sec
+  
+  // DOM elements
+  const mainScreen = document.getElementById('mainScreen');
+  const urgeFlowScreen = document.getElementById('urgeFlowScreen');
+  const urgeBtn = document.getElementById('urgeBtn');
+  const viewProgressBtn = document.getElementById('viewProgressBtn');
+  const emergencyBtn = document.getElementById('emergencyBtn');
+  const exitFlowBtn = document.getElementById('exitFlowBtn');
+  const countdownTimerEl = document.getElementById('countdownTimer');
+  const stageSpecificDiv = document.getElementById('stageSpecific');
+  const stageMessageEl = document.getElementById('stageMessage');
+  const flowMotivation = document.getElementById('flowMotivation');
+  const progressModal = document.getElementById('progressModal');
+  const closeProgressBtn = document.getElementById('closeProgressBtn');
+  
+  // stats displays
+  const currentStreakDisplay = document.getElementById('currentStreakDisplay');
+  const todaySuccessDisplay = document.getElementById('todaySuccessDisplay');
+  const modalCurrentStreak = document.getElementById('modalCurrentStreak');
+  const modalBestStreak = document.getElementById('modalBestStreak');
+  const modalTotalHandled = document.getElementById('modalTotalHandled');
+  const modalSuccessRate = document.getElementById('modalSuccessRate');
+  const motivationMsgDiv = document.getElementById('motivationMsg');
+  
+  // motivation quotes array
+  const motivationQuotes = [
+    "Control beats impulse", "Delay = strength", "You're training discipline",
+    "Pause before acting", "Every urge you master builds freedom",
+    "Stay in command", "Breathe. Wait. Win.", "One urge at a time"
+  ];
+  
+  // ---------- localStorage helpers ----------
+  function loadStats() {
+    const defaultStats = {
+      currentStreak: 0,
+      bestStreak: 0,
+      totalResisted: 0,       // total successful resists
+      totalAttempts: 0,       // total completed sessions (yes/no answered)
+      lastSuccessDate: null,
+      todaySuccessCount: 0
+    };
+    let data = localStorage.getItem('urgeBreakerStats');
+    if (!data) {
+      localStorage.setItem('urgeBreakerStats', JSON.stringify(defaultStats));
+      return defaultStats;
+    }
+    return JSON.parse(data);
+  }
+  
+  function saveStats(stats) {
+    localStorage.setItem('urgeBreakerStats', JSON.stringify(stats));
+  }
+  
+  function updateUIFromStats() {
+    const stats = loadStats();
+    currentStreakDisplay.innerText = stats.currentStreak;
+    // today success count: we must check date consistency on every load
+    const today = new Date().toISOString().slice(0,10);
+    let todayCount = stats.todaySuccessCount;
+    if (stats.lastSuccessDate !== today) {
+      // if last success was not today, we do not reset the count in storage (yet), but display 0 if not matching date? Actually todaySuccessCount belongs to lastSuccessDate only.
+      if (stats.lastSuccessDate !== today) {
+        todayCount = 0;
+      }
+    }
+    todaySuccessDisplay.innerText = todayCount;
+    // update modal later
+  }
+  
+  // update streak & increment success after Yes
+  function registerResistSuccess() {
+    let stats = loadStats();
+    const today = new Date().toISOString().slice(0,10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+    
+    // update today's success count
+    let currentTodayCount = (stats.lastSuccessDate === today) ? stats.todaySuccessCount : 0;
+    currentTodayCount += 1;
+    stats.todaySuccessCount = currentTodayCount;
+    
+    // streak logic: consecutive days
+    if (stats.lastSuccessDate === yesterday) {
+      stats.currentStreak += 1;
+    } else if (stats.lastSuccessDate === today) {
+      // same day multiple successes: streak remains same
+      // do nothing
+    } else {
+      // gap or first success
+      stats.currentStreak = 1;
+    }
+    
+    // update best streak
+    if (stats.currentStreak > stats.bestStreak) stats.bestStreak = stats.currentStreak;
+    stats.totalResisted += 1;
+    stats.totalAttempts += 1;
+    stats.lastSuccessDate = today;
+    
+    saveStats(stats);
+    updateUIFromStats();
+    showMessageToast("✅ Great! You resisted. +1 control point.");
+  }
+  
+  function registerResistFail() {
+    let stats = loadStats();
+    stats.totalAttempts += 1;
+    stats.currentStreak = 0;
+    // don't change todaySuccessCount or lastSuccessDate
+    saveStats(stats);
+    updateUIFromStats();
+    showMessageToast("🔄 Next urge will be easier. You're building awareness.");
+  }
+  
+  function showMessageToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'warning-toast';
+    toast.innerText = msg;
+    document.getElementById('appRoot').appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+  }
+  
+  // get random stage items
+  function getRandomActivity() {
+    const activities = ["💪 15 pushups", "💧 Cold water face wash", "🚶 Walk for 5 minutes", "🥤 Drink water", "🧘 Stretch"];
+    return activities[Math.floor(Math.random() * activities.length)];
+  }
+  
+  function getRandomRedirect() {
+    const redirects = ["📂 Open your coding project now", "📖 Read something technical", "✍️ Write 5 lines of code"];
+    return redirects[Math.floor(Math.random() * redirects.length)];
+  }
+  
+  // stage UI update based on elapsedSeconds (0..600)
+  function updateStageUI() {
+    if (!activeUrgeSession) return;
+    let newStage = 1;
+    if (elapsedSeconds >= 120 && elapsedSeconds < 300) newStage = 2;
+    else if (elapsedSeconds >= 300) newStage = 3;
+    else newStage = 1;
+    
+    if (newStage !== currentStage) {
+      currentStage = newStage;
+      // vibrate / beep on stage change (optional)
+      if (navigator.vibrate) navigator.vibrate(100);
+      // update motivation random
+      flowMotivation.innerText = motivationQuotes[Math.floor(Math.random() * motivationQuotes.length)];
+    }
+    
+    // render stage content
+    if (currentStage === 1) {
+      stageMessageEl.innerText = "🌬️ Breathing exercise · stay present";
+      stageSpecificDiv.innerHTML = `
+        <div class="breath-animation">
+          <div id="breathCircle" class="breath-circle">Breathe</div>
+          <p style="margin-top: 12px;" id="breathInstruction">Inhale deeply</p>
+        </div>
+      `;
+      // start breath cycle (if not already)
+      startBreathingCycle();
+    } 
+    else if (currentStage === 2) {
+      if (!stage2Activity) stage2Activity = getRandomActivity();
+      stageMessageEl.innerText = "⚡ Counter activity · take action now";
+      stageSpecificDiv.innerHTML = `<div class="action-text">${stage2Activity}</div><div style="font-size:0.9rem;">Do it now, regain control</div>`;
+    } 
+    else if (currentStage === 3) {
+      if (!stage3Redirect) stage3Redirect = getRandomRedirect();
+      stageMessageEl.innerText = "🎯 Focus redirect · build discipline";
+      stageSpecificDiv.innerHTML = `<div class="action-text">${stage3Redirect}</div><div style="font-size:0.9rem;">Immediate action > urge</div>`;
+    }
+  }
+  
+  let breathInterval = null;
+  function startBreathingCycle() {
+    if (breathInterval) clearInterval(breathInterval);
+    const circle = document.getElementById('breathCircle');
+    const instr = document.getElementById('breathInstruction');
+    if (!circle) return;
+    let phase = 'inhale'; // inhale 4s, exhale 6s
+    let timer = 0;
+    function updateBreath() {
+      if (!circle || !activeUrgeSession || currentStage !== 1) {
+        if (breathInterval) clearInterval(breathInterval);
+        return;
+      }
+      if (phase === 'inhale') {
+        circle.classList.add('breath-in');
+        circle.classList.remove('breath-out');
+        if (instr) instr.innerText = '🌬️ Inhale... 4 sec';
+        timer++;
+        if (timer >= 4) { phase = 'exhale'; timer = 0; }
+      } else {
+        circle.classList.add('breath-out');
+        circle.classList.remove('breath-in');
+        if (instr) instr.innerText = '💨 Exhale... 6 sec';
+        timer++;
+        if (timer >= 6) { phase = 'inhale'; timer = 0; }
+      }
+    }
+    updateBreath();
+    breathInterval = setInterval(updateBreath, 1000);
+  }
+  
+  function stopBreathingCycle() {
+    if (breathInterval) { clearInterval(breathInterval); breathInterval = null; }
+  }
+  
+  // timer main update
+  function startUrgeTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    elapsedSeconds = 0;
+    currentStage = 1;
+    stage2Activity = null;
+    stage3Redirect = null;
+    updateStageUI();
+    timerInterval = setInterval(() => {
+      if (!activeUrgeSession) return;
+      if (elapsedSeconds >= totalSessionDuration) {
+        // timer complete
+        clearInterval(timerInterval);
+        timerInterval = null;
+        activeUrgeSession = false;
+        stopBreathingCycle();
+        showCompletionDialog();
+        return;
+      }
+      elapsedSeconds++;
+      const remaining = totalSessionDuration - elapsedSeconds;
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+      countdownTimerEl.innerText = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+      updateStageUI();
+    }, 1000);
+  }
+  
+  // after timer ends
+  function showCompletionDialog() {
+    // remove flow screen and show modal dialog in app context
+    urgeFlowScreen.classList.add('hidden');
+    mainScreen.classList.remove('hidden');
+    // custom confirm overlay
+    const modalDiv = document.createElement('div');
+    modalDiv.className = 'modal';
+    modalDiv.innerHTML = `
+      <div class="modal-card">
+        <h3>⏱️ Timer complete</h3>
+        <p style="margin: 12px 0;">Did you resist the urge?</p>
+        <div style="display: flex; gap: 12px;">
+          <button id="yesResistBtn" style="background:#2e7d64; border:none; padding:10px; border-radius:40px; flex:1; color:white;">✅ Yes, I won</button>
+          <button id="noResistBtn" style="background:#7a4c4c; border:none; padding:10px; border-radius:40px; flex:1; color:white;">❌ No, I slipped</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modalDiv);
+    const yesBtn = document.getElementById('yesResistBtn');
+    const noBtn = document.getElementById('noResistBtn');
+    const cleanup = () => modalDiv.remove();
+    yesBtn.onclick = () => {
+      registerResistSuccess();
+      cleanup();
+      showMessageToast("Streak updated! You're building control.");
+    };
+    noBtn.onclick = () => {
+      registerResistFail();
+      cleanup();
+      showMessageToast("It's okay. Every moment is a new chance. Stay aware.");
+    };
+    activeUrgeSession = false;
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    stopBreathingCycle();
+  }
+  
+  // cancel / exit early with anti-relapse warning
+  function exitUrgeEarly() {
+    if (!activeUrgeSession) return;
+    // show warning modal double-check
+    const warnDiv = document.createElement('div');
+    warnDiv.className = 'modal';
+    warnDiv.innerHTML = `
+      <div class="modal-card">
+        <h3>⚠️ Don’t break now.</h3>
+        <p>Are you sure you want to quit the urge session early?</p>
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <button id="stayBtn" style="background:#2a6f5c; border:none; padding:8px; border-radius:40px; flex:1;">Stay & Continue</button>
+          <button id="quitAnywayBtn" style="background:#b13e3e; border:none; padding:8px; border-radius:40px; flex:1;">Quit anyway</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(warnDiv);
+    const stayBtn = document.getElementById('stayBtn');
+    const quitBtn = document.getElementById('quitAnywayBtn');
+    const closeModal = () => warnDiv.remove();
+    stayBtn.onclick = () => closeModal();
+    quitBtn.onclick = () => {
+      closeModal();
+      if (activeUrgeSession) {
+        // force end session, no stats recorded, just go back
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = null;
+        activeUrgeSession = false;
+        stopBreathingCycle();
+        urgeFlowScreen.classList.add('hidden');
+        mainScreen.classList.remove('hidden');
+        showMessageToast("Session cancelled. Next urge, stay stronger.");
+      }
+    };
+  }
+  
+  // EMERGENCY MODE: fullscreen red overlay, 30 sec countdown
+  function triggerEmergency() {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay-red';
+    let countdown = 30;
+    let interval;
+    const updateDisplay = () => {
+      overlay.innerHTML = `
+        <div class="emergency-box">
+          <h2 style="font-size:2rem;">🚨 EMERGENCY MODE</h2>
+          <div style="font-size:4rem; font-weight:bold; margin:20px;">${countdown}</div>
+          <p style="font-size:1.3rem;" id="rapidInstr">🏃 MOVE NOW! Clap hands</p>
+          <button id="closeEmergency" style="background:white; color:black; margin-top:20px; padding:8px 24px; border-radius:40px;">✖ Close</button>
+        </div>
+      `;
+      const rapidInstr = overlay.querySelector('#rapidInstr');
+      const instructions = ["💨 Breathe fast! 5x", "🤜 Punch the air!", "💧 Splash water (real)", "🧠 Shout 'STOP' mentally", "🏃‍♂️ Jump in place", "❄️ Hold something cold"];
+      if (rapidInstr && (countdown % 4 === 0 || countdown === 27 || countdown === 18)) {
+        rapidInstr.innerText = instructions[Math.floor(Math.random() * instructions.length)];
+      }
+    };
+    updateDisplay();
+    document.body.appendChild(overlay);
+    interval = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(interval);
+        overlay.remove();
+        showMessageToast("Emergency over. You are in control.");
+      } else {
+        updateDisplay();
+        if (navigator.vibrate) navigator.vibrate(80);
+      }
+    }, 1000);
+    const closeEmergency = () => {
+      clearInterval(interval);
+      overlay.remove();
+      showMessageToast("Emergency exited. Stay grounded.");
+    };
+    setTimeout(() => {
+      const btn = overlay.querySelector('#closeEmergency');
+      if (btn) btn.onclick = closeEmergency;
+    }, 50);
+  }
+  
+  // open progress modal with fresh stats
+  function openProgressDashboard() {
+    const stats = loadStats();
+    const today = new Date().toISOString().slice(0,10);
+    let currentStreakForModal = stats.currentStreak;
+    let successRate = stats.totalAttempts === 0 ? 0 : Math.round((stats.totalResisted / stats.totalAttempts) * 100);
+    modalCurrentStreak.innerText = currentStreakForModal;
+    modalBestStreak.innerText = stats.bestStreak;
+    modalTotalHandled.innerText = stats.totalAttempts;
+    modalSuccessRate.innerText = successRate;
+    progressModal.classList.remove('hidden');
+  }
+  
+  function closeProgressModal() {
+    progressModal.classList.add('hidden');
+  }
+  
+  // start urge flow
+  function startUrgeFlow() {
+    if (activeUrgeSession) {
+      showMessageToast("Already in a session! Complete or cancel it.");
+      return;
+    }
+    activeUrgeSession = true;
+    mainScreen.classList.add('hidden');
+    urgeFlowScreen.classList.remove('hidden');
+    stageSpecificDiv.innerHTML = '';
+    stageMessageEl.innerText = "Wait. You are in control.";
+    flowMotivation.innerText = motivationQuotes[Math.floor(Math.random() * motivationQuotes.length)];
+    startUrgeTimer();
+  }
+  
+  // periodic random motivation on main screen
+  setInterval(() => {
+    if (mainScreen && !mainScreen.classList.contains('hidden')) {
+      motivationMsgDiv.innerText = motivationQuotes[Math.floor(Math.random() * motivationQuotes.length)];
+    }
+  }, 17000);
+  
+  // Event listeners
+  urgeBtn.addEventListener('click', startUrgeFlow);
+  viewProgressBtn.addEventListener('click', openProgressDashboard);
+  emergencyBtn.addEventListener('click', triggerEmergency);
+  exitFlowBtn.addEventListener('click', exitUrgeEarly);
+  closeProgressBtn.addEventListener('click', closeProgressModal);
+  window.addEventListener('click', (e) => {
+    if (e.target === progressModal) closeProgressModal();
+  });
+  
+  // initial stats sync
+  function initTodaySuccessCheck() {
+    let stats = loadStats();
+    const today = new Date().toISOString().slice(0,10);
+    if (stats.lastSuccessDate !== today) {
+      stats.todaySuccessCount = 0;
+      stats.lastSuccessDate = stats.lastSuccessDate; // keep date but set today count? but we keep it zero
+      saveStats(stats);
+    }
+    updateUIFromStats();
+  }
+  initTodaySuccessCheck();
+  
+  // anti-spam disable on urge btn when session active is fine (but flow check inside)
+  // also reset all if needed
+  function safeCleanup() {
+    if (timerInterval) clearInterval(timerInterval);
+    stopBreathingCycle();
+  }
+  window.addEventListener('beforeunload', () => { if (activeUrgeSession) safeCleanup(); });
+  
+  // initial message random
+  motivationMsgDiv.innerText = motivationQuotes[Math.floor(Math.random() * motivationQuotes.length)];
+</script>
+<script>
+  // Register service worker for offline support
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      console.log('Service Worker registered', reg);
+    }).catch(err => {
+      console.error('SW registration failed', err);
+    });
+  }
+</script>
+</body>
+</html>
